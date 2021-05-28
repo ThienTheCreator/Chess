@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<link rel="stylesheet" href="css/style.css">
+		<script src="js/Chess.js"></script>
+		<title>Chess</title>
+	</head>
+	<body onload="loadBoard()">
+		<header>
+			<h1>Chess</h1>
+		</header>
+		<div class="board">
+			<div class="boardRow" id="row8">
+				<div class="white" id="a8" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="b8" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="c8" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="d8" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="e8" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="f8" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="g8" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="h8" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+			</div>
+			<div class="boardRow" id="row7">
+				<div class="black" id="a7" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="b7" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="c7" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="d7" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="e7" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="f7" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="g7" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="h7" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+			</div>
+			<div class="boardRow" id="row6">
+				<div class="white" id="a6" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="b6" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="c6" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="d6" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="e6" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="f6" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="g6" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="h6" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+			</div>
+			<div class="boardRow" id="row5">
+				<div class="black" id="a5" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="b5" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="c5" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="d5" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="e5" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="f5" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="g5" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="h5" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+			</div>
+			<div class="boardRow" id="row4">
+				<div class="white" id="a4" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="b4" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="c4" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="d4" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="e4" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="f4" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="g4" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="h4" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+			</div>
+			<div class="boardRow" id="row3">
+				<div class="black" id="a3" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="b3" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="c3" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="d3" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="e3" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="f3" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="g3" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="h3" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+			</div>
+			<div class="boardRow" id="row2">
+				<div class="white" id="a2" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="b2" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="c2" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="d2" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="e2" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="f2" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="g2" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="h2" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+			</div>
+			<div class="boardRow" id="row1">
+				<div class="black" id="a1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="b1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="c1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="d1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="e1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="f1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="black" id="g1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+				<div class="white" id="h1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+			</div>
+		</div>
+	</body>
+	<footer>
+	</footer>
+</html>
