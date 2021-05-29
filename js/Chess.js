@@ -186,9 +186,12 @@ function drop(event){
 		
 		if(playerTurn == "w"){
 			playerTurn = "b";
+			document.getElementById("turn").innerHTML="It's Black's Turn.";
 		} else{
 			playerTurn = "w";
+			document.getElementById("turn").innerHTML="It's White's Turn.";
 		}
+		document.getElementById("turn").innerHTML
 	}
 }
 

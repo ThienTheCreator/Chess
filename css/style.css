@@ -7,6 +7,15 @@ header {
 	margin: auto auto auto auto;
 }
 
+#turn{	
+	display: flex;
+	width: 100%;
+	text-align: center;
+	justify-content: center;
+	font-size: 50px;
+	color: 	#FF0000;
+}
+
 footer	{
 	display: flex;
 	width: 100%;
@@ -44,7 +53,7 @@ p {
 }
 
 h1 {
-	font-size: 60px;
+	font-size: 40px;
 	font-family: Helvetica;
 }
 
