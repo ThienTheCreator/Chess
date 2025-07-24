@@ -1,5 +1,29 @@
+function createBoard(){
+	let board = document.getElementsByClassName("board")[0];
+
+	for(let i = 8; i >= 1; i--){
+		let row = document.createElement("div");
+		row.className = "boardRow";
+		row.id = "row" + i;
+		
+		for(let j = 1; j <= 8; j++){
+			let square = document.createElement("div");
+
+			square.className = (i + j) % 2 == 0 ? "black" : "white";
+			square.id = String.fromCharCode('a'.charCodeAt(0) + j - 1) + i;
+			square.ondrop = drop;
+			square.ondragover = allowDrop;
+			row.appendChild(square);
+		}
+
+		board.appendChild(row);
+	}
+}
+
 // load chess board to standard position
 function loadBoard(){
+	createBoard();
+
 	// set Black Pieces
 	setPiece("bR", "a8","1")
 	setPiece("bN", "b8","2")
