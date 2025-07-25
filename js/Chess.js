@@ -1,4 +1,56 @@
+class Piece{
+	constructor(color, type){
+		this.color = color;
+		this.type = type;
+	}
+}
+
+class ChessBoard{
+	constructor(board){
+		this.board = board;
+
+		// Global var to check current and previous turn
+		this.currPosOld = "";
+		this.currPosNew = "";
+		this.prevPosOld = "";
+		this.prevPosNew = "";
+
+		// vertical and horizontal change in position
+		this.vChange = 0;
+		this.hChange = 0;
+
+		// Track piece movement
+		this.currPiece = "";
+		this.prevPiece = "";
+		this.pieceOnMove = "";
+		this.playerTurn = "w";
+
+		// For cattling. Check if piece has not move. 
+		this.BR1 = true;
+		this.BR2 = true;
+		this.WR1 = true;
+		this.WR2 = true;
+		this.BK = true;
+		this.WK = true;
+		
+		// Default value if board is not given
+		if(this.board === undefined){
+			this.board = new Array(8);
+
+			for (let i = 0; i < 8; i++) {
+  				this.board[i] = new Array(8);
+				for(let j = 0; j < 8; j++){
+					this.board[i][j] = "";
+				}
+			}
+		}
+	}
+}
+
 function createBoard(){
+	let cBoard = new ChessBoard();
+	console.log(cBoard);
+
 	let board = document.getElementsByClassName("board")[0];
 
 	for(let i = 8; i >= 1; i--){
