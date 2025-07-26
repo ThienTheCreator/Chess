@@ -1,7 +1,8 @@
 class Piece{
-	constructor(color, type){
+	constructor(color, type, notation){
 		this.color = color;
 		this.type = type;
+		this.notaion = notation;
 	}
 }
 
@@ -37,9 +38,9 @@ class ChessBoard{
 		if(this.board === undefined){
 			this.board = new Array(8);
 
-			for (let i = 0; i < 8; i++) {
+			for (let i = 0; i < 8; ++i) {
   				this.board[i] = new Array(8);
-				for(let j = 0; j < 8; j++){
+				for(let j = 0; j < 8; ++j){
 					this.board[i][j] = "";
 				}
 			}
@@ -47,18 +48,19 @@ class ChessBoard{
 	}
 }
 
+
+let chessBoard;
 function createBoard(){
-	let cBoard = new ChessBoard();
-	console.log(cBoard);
+	chessBoard = new ChessBoard();
 
 	let board = document.getElementsByClassName("board")[0];
 
-	for(let i = 8; i >= 1; i--){
+	for(let i = 8; i >= 1; --i){
 		let row = document.createElement("div");
 		row.className = "boardRow";
 		row.id = "row" + i;
 		
-		for(let j = 1; j <= 8; j++){
+		for(let j = 1; j <= 8; ++j){
 			let square = document.createElement("div");
 
 			square.className = (i + j) % 2 == 0 ? "black" : "white";
@@ -85,7 +87,7 @@ function loadBoard(){
 	setPiece("bB", "f8","6")
 	setPiece("bN", "g8","7")
 	setPiece("bR", "h8","8")
-	for(var i = 0; i < 8;i++){
+	for(var i = 0; i < 8; ++i){
 		var loc = String.fromCharCode(97 + i) + "7";
 		setPiece("bP", loc,(9+i).toString());
 	}
@@ -99,9 +101,27 @@ function loadBoard(){
 	setPiece("wB", "f1","22")
 	setPiece("wN", "g1","23")
 	setPiece("wR", "h1","24")
-	for(var i = 0; i < 8;i++){
+	for(var i = 0; i < 8; ++i){
 		var loc = String.fromCharCode(97 + i) + "2";
 		setPiece("wP", loc,(25+i).toString());
+	}
+
+	let chessNotation = new Object();
+	chessNotation["R"] = "Rook";
+	chessNotation["N"] = "Knight";
+	chessNotation["B"] = "Bishop"; 
+	chessNotation["Q"] = "Queen";
+	chessNotation["K"] = "King";
+	chessNotation["P"] = "Pawn";
+
+	let backRow = ["R", "N", "B", "Q", "K", "B", "N", "R"];
+	for(let i = 0; i < 8; ++i){
+		chessBoard.board[7][i] = new Piece("Black", chessNotation[backRow[i]], backRow[i]);
+		chessBoard.board[0][i] = new Piece("White", chessNotation[backRow[i]], backRow[i]);
+
+
+		chessBoard.board[6][i] = new Piece("Black", chessNotation["P"], "P");
+		chessBoard.board[1][i] = new Piece("White", chessNotation["P"], "P");
 	}
 }
 
@@ -347,7 +367,7 @@ function checkBishop(){
 		
 		let addPosZero = 0;
 		let addPosOne = 0;
-;		if(hChange>0){
+		if(hChange>0){
 			addPosZero = 1;
 		}else{
 			addPosZero = -1;
