@@ -2,7 +2,7 @@ class Piece{
 	constructor(color, type, notation){
 		this.color = color;
 		this.type = type;
-		this.notaion = notation;
+		this.notation = notation;
 	}
 }
 
@@ -78,34 +78,6 @@ function createBoard(){
 function loadBoard(){
 	createBoard();
 
-	// set Black Pieces
-	setPiece("bR", "a8","1")
-	setPiece("bN", "b8","2")
-	setPiece("bB", "c8","3")
-	setPiece("bQ", "d8","4")
-	setPiece("bK", "e8","5")
-	setPiece("bB", "f8","6")
-	setPiece("bN", "g8","7")
-	setPiece("bR", "h8","8")
-	for(var i = 0; i < 8; ++i){
-		var loc = String.fromCharCode(97 + i) + "7";
-		setPiece("bP", loc,(9+i).toString());
-	}
-	
-	// set White Pieces
-	setPiece("wR", "a1","17")
-	setPiece("wN", "b1","18")
-	setPiece("wB", "c1","19")
-	setPiece("wQ", "d1","20")
-	setPiece("wK", "e1","21")
-	setPiece("wB", "f1","22")
-	setPiece("wN", "g1","23")
-	setPiece("wR", "h1","24")
-	for(var i = 0; i < 8; ++i){
-		var loc = String.fromCharCode(97 + i) + "2";
-		setPiece("wP", loc,(25+i).toString());
-	}
-
 	let chessNotation = new Object();
 	chessNotation["R"] = "Rook";
 	chessNotation["N"] = "Knight";
@@ -122,6 +94,36 @@ function loadBoard(){
 
 		chessBoard.board[6][i] = new Piece("Black", chessNotation["P"], "P");
 		chessBoard.board[1][i] = new Piece("White", chessNotation["P"], "P");
+	}
+
+	updateDisplayBoard();
+}
+
+function updateDisplayBoard(){
+	let pieceColor = "";
+	let pieceNotation = "";
+	let uniqueId = 1;
+	for(let i = 0; i < 8; ++i){
+		for(let j = 0; j < 8; ++j){
+			if(chessBoard.board[i][j] === undefined)
+				continue;
+
+			pieceColor = chessBoard.board[i][j].color === "Black" ? "b" : "w";
+			pieceNotation = chessBoard.board[i][j].notation;
+			let newPiece = pieceColor + pieceNotation;
+
+			let row = String.fromCharCode('a'.charCodeAt(0) + j);;
+			let col = "" + (i + 1);
+
+			let newId = "" + uniqueId;
+
+			setPiece(newPiece, row + col, newId);
+			console.log(newPiece)
+			console.log(row + col)
+			console.log(newId)
+
+			++uniqueId;
+		}
 	}
 }
 
@@ -212,30 +214,28 @@ function drag(event){
 // drop pieces
 function drop(event){
 	event.preventDefault();
-	currPosNew=event.currentTarget.id;
-	var data = event.dataTransfer.getData("text");
-		if(event.currentTarget.childNodes.length > 0){	
-			pieceOnMove = event.target.name;
-		}else{
-			pieceOnMove = "";
-		}
+	currPosNew = event.currentTarget.id;
+	
+	let data = event.dataTransfer.getData("text");
+	if(event.currentTarget.childNodes.length > 0){	
+		pieceOnMove = event.target.name;
+	}else{
+		pieceOnMove = "";
+	}
+	
 	if(event.target.id != data && checkMove(event)){
 		let temp = "";
 		if(event.currentTarget.childNodes.length > 0){	
 			temp = event.currentTarget.innerHTML;
 			event.currentTarget.innerHTML="";
 		}
+
 		event.currentTarget.appendChild(document.getElementById(data));
 		prevPosOld = currPosOld;
 		prevPosNew = currPosNew;
 		prevPiece = currPiece;
 		
-		let kingId;
-		if(playerTurn == "b"){
-			kingId = "5";
-		}else{
-			kingId = "21";
-		}
+		let kingId = playerTurn === "b" ? "5" : "21";
 
 		let currKingPos = document.getElementById(kingId).parentNode.id;
 		if(isKingCheck(currKingPos,playerTurn)){
@@ -360,34 +360,46 @@ function checkMove(event){
 function checkBishop(){
 	let vAbsChange = Math.abs(vChange);
 	let hAbsChange = Math.abs(hChange);
-	
-	// check diagonal move
-	if(vAbsChange == hAbsChange){
-		let pos = currPosOld;
-		
-		let addPosZero = 0;
-		let addPosOne = 0;
-		if(hChange>0){
-			addPosZero = 1;
-		}else{
-			addPosZero = -1;
-		}
 
-		if(vChange > 0){
-			addPosOne = 1;
-		}else{
-			addPosOne = -1;
-		}
-		
-		// check diagonal if a piece is in the way
-		for(var i = 0; i < vAbsChange-1;i++){
-			pos = String.fromCharCode(pos.charCodeAt(0)+addPosZero) + (pos[1]-'0'+addPosOne);
-			if(document.getElementById(pos).innerHTML!="")
-				return false;
-		}
-		return true;
+
+	// check diagonal move
+	if(vAbsChange !== hAbsChange)
+		return false;
+
+	let pos = currPosOld;
+	
+	let addPosZero = 0;
+	let addPosOne = 0;
+	if(hChange>0){
+		addPosZero = 1;
+	}else{
+		addPosZero = -1;
 	}
-	return false;
+
+	if(vChange > 0){
+		addPosOne = 1;
+	}else{
+		addPosOne = -1;
+	}
+	
+	// check diagonal if a piece is in the way
+	for(var i = 0; i < vAbsChange-1;i++){
+		pos = String.fromCharCode(pos.charCodeAt(0)+addPosZero) + (pos[1]-'0'+addPosOne);
+		if(document.getElementById(pos).innerHTML!="")
+			return false;
+	}
+
+	/*
+	let row = pos[i] - 'a';
+	let col = pos[i] - '1';
+	// check diagonal if a piece is in the way
+	for(var i = 0; i < vAbsChange - 1;i++){
+		if(chessBoard.board[row + i * addPosZero][row + i * addPosOne] != ""); 
+			return false;
+	}
+	*/
+
+	return true;
 }
 
 
