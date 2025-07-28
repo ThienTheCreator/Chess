@@ -1,8 +1,8 @@
 class Piece{
-	constructor(color, type, notation){
+	constructor(color, notation, id){
 		this.color = color;
-		this.type = type;
 		this.notation = notation;
+		this.id = id;
 	}
 }
 
@@ -77,52 +77,64 @@ function createBoard(){
 // load chess board to standard position
 function loadBoard(){
 	createBoard();
-
-	let chessNotation = new Object();
-	chessNotation["R"] = "Rook";
-	chessNotation["N"] = "Knight";
-	chessNotation["B"] = "Bishop"; 
-	chessNotation["Q"] = "Queen";
-	chessNotation["K"] = "King";
-	chessNotation["P"] = "Pawn";
-
-	let backRow = ["R", "N", "B", "Q", "K", "B", "N", "R"];
-	for(let i = 0; i < 8; ++i){
-		chessBoard.board[7][i] = new Piece("Black", chessNotation[backRow[i]], backRow[i]);
-		chessBoard.board[0][i] = new Piece("White", chessNotation[backRow[i]], backRow[i]);
-
-
-		chessBoard.board[6][i] = new Piece("Black", chessNotation["P"], "P");
-		chessBoard.board[1][i] = new Piece("White", chessNotation["P"], "P");
-	}
-
+	loadPieces();
 	updateDisplayBoard();
 }
 
-function updateDisplayBoard(){
-	let pieceColor = "";
-	let pieceNotation = "";
+let notationTable = new Object();
+function loadPieces(){
+	notationTable["R"] = "Rook";
+	notationTable["N"] = "Knight";
+	notationTable["B"] = "Bishop"; 
+	notationTable["Q"] = "Queen";
+	notationTable["K"] = "King";
+	notationTable["P"] = "Pawn";
+	notationTable["Rook"]   = "R";
+	notationTable["Knigh"]  = "N";
+	notationTable["Bishop"] = "B"; 
+	notationTable["Queen"]  = "Q";
+	notationTable["King"]   = "K";
+	notationTable["Pawn"]   = "P";
+
+	let backRow = ["R", "N", "B", "Q", "K", "B", "N", "R"];
 	let uniqueId = 1;
 	for(let i = 0; i < 8; ++i){
-		for(let j = 0; j < 8; ++j){
-			if(chessBoard.board[i][j] === undefined)
+		chessBoard.board[0][i] = new Piece("w", backRow[i], i + 1);
+		chessBoard.board[1][i] = new Piece("w", "P", i + 9);
+		chessBoard.board[6][i] = new Piece("b", "P", i + 17);
+		chessBoard.board[7][i] = new Piece("b", backRow[i], i + 25);
+	}	
+}
+
+function notationToIndex(notation){
+	col = notation[0].charCodeAt(0) - 'a'.charCodeAt(0);
+	row = notation[1].charCodeAt(0) - '1'.charCodeAt(0);
+
+	return [row, col];
+}
+
+function indexToNotation(row, col){
+	let notation =  String.fromCharCode('a'.charCodeAt(0) + col);
+	notation += String.fromCharCode('1'.charCodeAt(0) + row);
+
+	return notation;
+}
+
+function updateDisplayBoard(){
+	let square;
+	for(let row = 0; row < 8; ++row){
+		for(let col = 0; col < 8; ++col){
+			square = chessBoard.board[row][col];
+
+			if(square === undefined)
 				continue;
 
-			pieceColor = chessBoard.board[i][j].color === "Black" ? "b" : "w";
-			pieceNotation = chessBoard.board[i][j].notation;
-			let newPiece = pieceColor + pieceNotation;
+			let piece = square.color;
+			piece += square.notation;
+			let location = indexToNotation(row, col);
+			let id = square.id;
 
-			let row = String.fromCharCode('a'.charCodeAt(0) + j);;
-			let col = "" + (i + 1);
-
-			let newId = "" + uniqueId;
-
-			setPiece(newPiece, row + col, newId);
-			console.log(newPiece)
-			console.log(row + col)
-			console.log(newId)
-
-			++uniqueId;
+			setPiece(piece, location, id);
 		}
 	}
 }
@@ -173,7 +185,16 @@ function setPiece( piece, location,id){
 	imagePiece.setAttribute("name",piece);
 	imagePiece.setAttribute("id",id);
 	imagePiece.setAttribute("ondragstart","drag(event)");
+
+	let square = document.getElementById(location);
+	if(square.innerHTML !== ""){
+		document.getElementById(location).removeChild(imagePiece);
+	} 
 	document.getElementById(location).appendChild(imagePiece);
+}
+
+function movePiece(fromPosition, toPosition){
+	document.getElementById(toPosition).innerHTML = document.getElementById(fromPosition).innerHTML;
 }
 
 // Global var to check current and previous turn
@@ -222,73 +243,74 @@ function drop(event){
 	}else{
 		pieceOnMove = "";
 	}
-	
-	if(event.target.id != data && checkMove(event)){
-		let temp = "";
-		if(event.currentTarget.childNodes.length > 0){	
-			temp = event.currentTarget.innerHTML;
-			event.currentTarget.innerHTML="";
-		}
 
-		event.currentTarget.appendChild(document.getElementById(data));
-		prevPosOld = currPosOld;
-		prevPosNew = currPosNew;
-		prevPiece = currPiece;
-		
-		let kingId = playerTurn === "b" ? "5" : "21";
+	if(event.target.id == data || !checkMove(event))
+		return
 
-		let currKingPos = document.getElementById(kingId).parentNode.id;
-		if(isKingCheck(currKingPos,playerTurn)){
-			document.getElementById(prevPosOld).innerHTML = document.getElementById(prevPosNew).innerHTML;
-			document.getElementById(prevPosNew).innerHTML = temp;
-			return;
-		}
-	
-		if(currPiece == "wP" && currPosNew[1] == "8"){
-			console.log(document.getElementById(currPosNew).childNode);
-			let id = document.getElementById(currPosNew).firstChild.id;
-			document.getElementById(currPosNew).innerHTML = "";
-			setPiece("wQ", currPosNew,id);
-		}
-		if(currPiece == "bP" && currPosNew[1] == "1"){
-			console.log(document.getElementById(currPosNew).childNode);
-			let id = document.getElementById(currPosNew).firstChild.id;
-			document.getElementById(currPosNew).innerHTML = "";
-			setPiece("bQ",currPosNew,id);
-		}
-
-		switch(prevPosOld){
-			case "a1":
-				WR1 = false;
-				break;
-			case "h1":
-				WR2 = false;
-				break;
-			case "a8":
-				BR1 = false;
-				break;
-			case "h8":
-				BR2 = false;
-				break;
-			case "e1":
-				WK = false;
-				break;
-			case "e8":
-				BK = false;
-				break;
-			default:
-				break;
-		}
-		
-		if(playerTurn == "w"){
-			playerTurn = "b";
-			document.getElementById("turn").innerHTML="It's Black's Turn.";
-		} else{
-			playerTurn = "w";
-			document.getElementById("turn").innerHTML="It's White's Turn.";
-		}
-		document.getElementById("turn").innerHTML
+	let temp = "";
+	if(event.currentTarget.childNodes.length > 0){	
+		temp = event.currentTarget.innerHTML;
+		event.currentTarget.innerHTML="";
 	}
+
+	event.currentTarget.appendChild(document.getElementById(data));
+	prevPosOld = currPosOld;
+	prevPosNew = currPosNew;
+	prevPiece = currPiece;
+	
+	let kingId = playerTurn === "w" ? "5" : "21";
+
+	let currKingPos = document.getElementById(kingId).parentNode.id;
+	if(isKingCheck(currKingPos,playerTurn)){
+		document.getElementById(prevPosOld).innerHTML = document.getElementById(prevPosNew).innerHTML;
+		document.getElementById(prevPosNew).innerHTML = temp;
+		return;
+	}
+
+	if(currPiece == "wP" && currPosNew[1] == "8"){
+		console.log(document.getElementById(currPosNew).childNode);
+		let id = document.getElementById(currPosNew).firstChild.id;
+		document.getElementById(currPosNew).innerHTML = "";
+		setPiece("wQ", currPosNew,id);
+	}
+	if(currPiece == "bP" && currPosNew[1] == "1"){
+		console.log(document.getElementById(currPosNew).childNode);
+		let id = document.getElementById(currPosNew).firstChild.id;
+		document.getElementById(currPosNew).innerHTML = "";
+		setPiece("bQ",currPosNew,id);
+	}
+
+	switch(prevPosOld){
+		case "a1":
+			WR1 = false;
+			break;
+		case "h1":
+			WR2 = false;
+			break;
+		case "a8":
+			BR1 = false;
+			break;
+		case "h8":
+			BR2 = false;
+			break;
+		case "e1":
+			WK = false;
+			break;
+		case "e8":
+			BK = false;
+			break;
+		default:
+			break;
+	}
+
+	if(playerTurn == "w"){
+		playerTurn = "b";
+		document.getElementById("turn").innerHTML="It's Black's Turn.";
+	} else{
+		playerTurn = "w";
+		document.getElementById("turn").innerHTML="It's White's Turn.";
+	}
+	document.getElementById("turn").innerHTML;
 }
 
 //function to check movie
@@ -383,13 +405,6 @@ function checkBishop(){
 	}
 	
 	// check diagonal if a piece is in the way
-	for(var i = 0; i < vAbsChange-1;i++){
-		pos = String.fromCharCode(pos.charCodeAt(0)+addPosZero) + (pos[1]-'0'+addPosOne);
-		if(document.getElementById(pos).innerHTML!="")
-			return false;
-	}
-
-	/*
 	let row = pos[i] - 'a';
 	let col = pos[i] - '1';
 	// check diagonal if a piece is in the way
@@ -397,7 +412,6 @@ function checkBishop(){
 		if(chessBoard.board[row + i * addPosZero][row + i * addPosOne] != ""); 
 			return false;
 	}
-	*/
 
 	return true;
 }
