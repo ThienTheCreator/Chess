@@ -83,19 +83,6 @@ function loadBoard(){
 
 let notationTable = new Object();
 function loadPieces(){
-	notationTable["R"] = "Rook";
-	notationTable["N"] = "Knight";
-	notationTable["B"] = "Bishop"; 
-	notationTable["Q"] = "Queen";
-	notationTable["K"] = "King";
-	notationTable["P"] = "Pawn";
-	notationTable["Rook"]   = "R";
-	notationTable["Knigh"]  = "N";
-	notationTable["Bishop"] = "B"; 
-	notationTable["Queen"]  = "Q";
-	notationTable["King"]   = "K";
-	notationTable["Pawn"]   = "P";
-
 	let backRow = ["R", "N", "B", "Q", "K", "B", "N", "R"];
 	let uniqueId = 1;
 	for(let i = 0; i < 8; ++i){
@@ -188,7 +175,7 @@ function setPiece( piece, location,id){
 
 	let square = document.getElementById(location);
 	if(square.innerHTML !== ""){
-		document.getElementById(location).removeChild(imagePiece);
+		document.getElementById(location).innerHTML = "";
 	} 
 	document.getElementById(location).appendChild(imagePiece);
 }
@@ -227,58 +214,30 @@ function allowDrop(event){
 
 // drag pieces
 function drag(event){
-	event.dataTransfer.setData("text",event.target.id);
-	currPiece = event.target.name;
-	currPosOld = event.target.parentNode.id;
+	currPosOld = notationToIndex(event.target.parentNode.id);
+	currPiece = chessBoard.board[currPosOld[0]][currPosOld[1]];
 }
 
 // drop pieces
 function drop(event){
 	event.preventDefault();
-	currPosNew = event.currentTarget.id;
+	currPosNew = notationToIndex(event.currentTarget.id);
 	
-	let data = event.dataTransfer.getData("text");
-	if(event.currentTarget.childNodes.length > 0){	
-		pieceOnMove = event.target.name;
-	}else{
-		pieceOnMove = "";
-	}
-
-	if(event.target.id == data || !checkMove(event))
+	if(!checkMove(event))
 		return
 
-	let temp = "";
-	if(event.currentTarget.childNodes.length > 0){	
-		temp = event.currentTarget.innerHTML;
-		event.currentTarget.innerHTML="";
-	}
-
-	event.currentTarget.appendChild(document.getElementById(data));
 	prevPosOld = currPosOld;
 	prevPosNew = currPosNew;
 	prevPiece = currPiece;
-	
-	let kingId = playerTurn === "w" ? "5" : "21";
 
-	let currKingPos = document.getElementById(kingId).parentNode.id;
-	if(isKingCheck(currKingPos,playerTurn)){
-		document.getElementById(prevPosOld).innerHTML = document.getElementById(prevPosNew).innerHTML;
-		document.getElementById(prevPosNew).innerHTML = temp;
-		return;
-	}
+	console.log(currPosOld);
+	console.log(currPosNew);
+	currPiece = chessBoard.board[currPosNew[0]][currPosNew[1]];
+	chessBoard.board[currPosNew[0]][currPosNew[1]] = chessBoard.board[currPosOld[0]][currPosOld[1]];
+	chessBoard.board[currPosOld[0]][currPosOld[1]] = "";
 
-	if(currPiece == "wP" && currPosNew[1] == "8"){
-		console.log(document.getElementById(currPosNew).childNode);
-		let id = document.getElementById(currPosNew).firstChild.id;
-		document.getElementById(currPosNew).innerHTML = "";
-		setPiece("wQ", currPosNew,id);
-	}
-	if(currPiece == "bP" && currPosNew[1] == "1"){
-		console.log(document.getElementById(currPosNew).childNode);
-		let id = document.getElementById(currPosNew).firstChild.id;
-		document.getElementById(currPosNew).innerHTML = "";
-		setPiece("bQ",currPosNew,id);
-	}
+	updateDisplayBoard();
+	console.log(chessBoard.board)
 
 	switch(prevPosOld){
 		case "a1":
@@ -310,72 +269,52 @@ function drop(event){
 		playerTurn = "w";
 		document.getElementById("turn").innerHTML="It's White's Turn.";
 	}
-	document.getElementById("turn").innerHTML;
 }
 
 //function to check movie
 function checkMove(event){
 	let legal = false;
-	
-	if(playerTurn != currPiece[0]){
+
+	// check current player turn
+	if(playerTurn != currPiece.color){
 		return false;
 	}
 
 	// check if a piece is eaten not on the same team
-	if(event.currentTarget.childNodes.length > 0){
-		if(event.target.name[0] == playerTurn){
-			return false;
-		}
-	}
-	
-	hChange = currPosNew.charCodeAt(0) - currPosOld.charCodeAt(0);
-	vChange = currPosNew[1] - currPosOld[1];
-	
-	switch(currPiece){
-		case "bB":
-			legal = checkBishop();
-			break;
-		case "bK":
-			legal = checkBKing();
-			break;
-		case "bN":
-			legal = checkKnight();
-			break;
-		case "bP":
-			legal = checkBPawn();
-			break;
-		case "bQ":
-			legal = checkQueen();
-			break;
-		case "bR":
-			legal = checkRook();
-			break;
-		case "wB":
-			legal = checkBishop();
-			break;
-		case "wK":
-			legal = checkWKing();
-			break;
-		case "wN":
-			legal = checkKnight();
-			break;
-		case "wP":
-			legal = checkWPawn();
-			break;
-		case "wQ":
-			legal = checkQueen();
-			break;
-		case "wR":
-			legal = checkRook();
-			break;
-	}
-		
-	
-	if(legal == false){
+	if(chessBoard.board[currPosNew[0]][currPosNew[1]] == currPiece.color){
 		return false;
 	}
 	
-	return true;
+	hChange = currPosNew[0] - currPosOld[0];
+	vChange = currPosNew[1] - currPosOld[1];
+
+	console.log(hChange)
+	console.log(vChange)
+	
+	switch(currPiece.notation){
+		case "B":
+			legal = checkBishop();
+			break;
+		case "K":
+			legal = checkBKing();
+			break;
+		case "N":
+			legal = checkKnight();
+			break;
+		case "P":
+			legal = checkBPawn();
+			break;
+		case "Q":
+			legal = checkQueen();
+			break;
+		case "R":
+			legal = checkRook();
+			break;
+	}
+
+	console.log(legal);
+	
+	return legal;
 }
 
 // check Black Bishop for legal move
@@ -405,11 +344,14 @@ function checkBishop(){
 	}
 	
 	// check diagonal if a piece is in the way
-	let row = pos[i] - 'a';
-	let col = pos[i] - '1';
+	let row = pos[0];
+	let col = pos[1];
 	// check diagonal if a piece is in the way
-	for(var i = 0; i < vAbsChange - 1;i++){
-		if(chessBoard.board[row + i * addPosZero][row + i * addPosOne] != ""); 
+	console.log(pos)
+	console.log(addPosZero, addPosOne)
+	for(let i = 1; i < vAbsChange;i++){
+		console.log(chessBoard.board[row + i * addPosZero][col + i * addPosOne])
+		if(chessBoard.board[row + i * addPosZero][col + i * addPosOne] != "") 
 			return false;
 	}
 
@@ -424,7 +366,7 @@ function checkKnight(){
 	let hAbsChange = Math.abs(hChange);
 	
 	// check to see if knight move in an L
-	if((vAbsChange == 1 && hAbsChange==2) || (vAbsChange == 2 && hAbsChange == 1)){
+	if((vAbsChange == 1 && hAbsChange == 2) || (vAbsChange == 2 && hAbsChange == 1)){
 		return true;
 	}
 	
