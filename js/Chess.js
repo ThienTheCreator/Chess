@@ -17,8 +17,8 @@ class ChessBoard{
 		this.prevPosNew = "";
 
 		// vertical and horizontal change in position
-		this.vChange = 0;
-		this.hChange = 0;
+		this.rowChange = 0;
+		this.colChange = 0;
 
 		// Track piece movement
 		this.currPiece = "";
@@ -72,13 +72,6 @@ function createBoard(){
 
 		board.appendChild(row);
 	}
-}
-
-// load chess board to standard position
-function loadBoard(){
-	createBoard();
-	loadPieces();
-	updateDisplayBoard();
 }
 
 let notationTable = new Object();
@@ -180,32 +173,40 @@ function setPiece( piece, location,id){
 	document.getElementById(location).appendChild(imagePiece);
 }
 
+// load chess board to standard position
+function loadBoard(){
+	createBoard();
+	loadPieces();
+	updateDisplayBoard();
+}
+
+// TODO: 
 function movePiece(fromPosition, toPosition){
 	document.getElementById(toPosition).innerHTML = document.getElementById(fromPosition).innerHTML;
 }
 
 // Global var to check current and previous turn
-var currPosOld;
-var currPosNew;
-var prevPosOld;
-var prevPosNew;
+let currPosOld;
+let currPosNew;
+let prevPosOld;
+let prevPosNew;
 
 // vertical and horizontal change in position
-var vChange;
-var hChange;
+let rowChange;
+let colChange;
 
-var currPiece;
-var prevPiece;
-var pieceOnMove;
-var playerTurn = "w";
+let currPiece;
+let prevPiece;
+let pieceOnMove;
+let playerTurn = "w";
 
 // For cattling
-var BR1 = true;
-var BR2 = true;
-var WR1 = true;
-var WR2 = true;
-var BK = true;
-var WK = true;
+let BR1 = true;
+let BR2 = true;
+let WR1 = true;
+let WR2 = true;
+let BK = true;
+let WK = true;
 
 // function to allow drop
 function allowDrop(event){
@@ -226,18 +227,14 @@ function drop(event){
 	if(!checkMove(event))
 		return
 
-	prevPosOld = currPosOld;
-	prevPosNew = currPosNew;
-	prevPiece = currPiece;
-
-	console.log(currPosOld);
-	console.log(currPosNew);
-	currPiece = chessBoard.board[currPosNew[0]][currPosNew[1]];
 	chessBoard.board[currPosNew[0]][currPosNew[1]] = chessBoard.board[currPosOld[0]][currPosOld[1]];
 	chessBoard.board[currPosOld[0]][currPosOld[1]] = "";
 
+	prevPosOld = currPosOld;
+	prevPosNew = currPosNew;
+	prevPiece = currPiece;
+	
 	updateDisplayBoard();
-	console.log(chessBoard.board)
 
 	switch(prevPosOld){
 		case "a1":
@@ -285,24 +282,21 @@ function checkMove(event){
 		return false;
 	}
 	
-	hChange = currPosNew[0] - currPosOld[0];
-	vChange = currPosNew[1] - currPosOld[1];
-
-	console.log(hChange)
-	console.log(vChange)
+	rowChange = currPosNew[0] - currPosOld[0];
+	colChange = currPosNew[1] - currPosOld[1];
 	
 	switch(currPiece.notation){
 		case "B":
 			legal = checkBishop();
 			break;
 		case "K":
-			legal = checkBKing();
+			legal = checkKing();
 			break;
 		case "N":
 			legal = checkKnight();
 			break;
 		case "P":
-			legal = checkBPawn();
+			legal = checkPawn();
 			break;
 		case "Q":
 			legal = checkQueen();
@@ -312,32 +306,30 @@ function checkMove(event){
 			break;
 	}
 
-	console.log(legal);
-	
 	return legal;
 }
 
 // check Black Bishop for legal move
 function checkBishop(){
-	let vAbsChange = Math.abs(vChange);
-	let hAbsChange = Math.abs(hChange);
+	let rowAbsChange = Math.abs(rowChange);
+	let colAbsChange = Math.abs(colChange);
 
 
 	// check diagonal move
-	if(vAbsChange !== hAbsChange)
+	if(rowAbsChange !== colAbsChange || rowAbsChange == 0)
 		return false;
 
 	let pos = currPosOld;
 	
 	let addPosZero = 0;
 	let addPosOne = 0;
-	if(hChange>0){
+	if(rowChange>0){
 		addPosZero = 1;
 	}else{
 		addPosZero = -1;
 	}
 
-	if(vChange > 0){
+	if(colChange > 0){
 		addPosOne = 1;
 	}else{
 		addPosOne = -1;
@@ -347,13 +339,16 @@ function checkBishop(){
 	let row = pos[0];
 	let col = pos[1];
 	// check diagonal if a piece is in the way
-	console.log(pos)
-	console.log(addPosZero, addPosOne)
-	for(let i = 1; i < vAbsChange;i++){
-		console.log(chessBoard.board[row + i * addPosZero][col + i * addPosOne])
-		if(chessBoard.board[row + i * addPosZero][col + i * addPosOne] != "") 
+	for(let i = 1; i < rowAbsChange;i++){
+		if(chessBoard.board[row + i * addPosZero][col + i * addPosOne] != ""){
 			return false;
+		}
 	}
+
+	let fromSquare = chessBoard.board[row][col];
+	let toSquare = chessBoard.board[row + rowChange][col + colChange];
+	if(toSquare != "" && fromSquare.color == toSquare.color)	
+		return false;
 
 	return true;
 }
@@ -362,13 +357,20 @@ function checkBishop(){
 
 // check Knight for legal move
 function checkKnight(){
-	let vAbsChange = Math.abs(vChange);
-	let hAbsChange = Math.abs(hChange);
+	let rowAbsChange = Math.abs(rowChange);
+	let colAbsChange = Math.abs(colChange);
 	
 	// check to see if knight move in an L
-	if((vAbsChange == 1 && hAbsChange == 2) || (vAbsChange == 2 && hAbsChange == 1)){
+	if((rowAbsChange == 1 && colAbsChange == 2) || (rowAbsChange == 2 && colAbsChange == 1)){
 		return true;
 	}
+
+	let pos = currPosOld;
+	
+	let fromSquare = chessBoard.board[row][col];
+	let toSquare = chessBoard.board[row + rowChange][col + colChange];
+	if(toSquare != "" && fromSquare.color == toSquare.color)	
+		return false;
 	
 	return false;
 }
@@ -383,248 +385,107 @@ function checkQueen(){
 function checkRook(){
 	
 	// check if rook moved horizontal or vertical 
-	if(vChange == 0 || hChange == 0){
-		let pos = currPosOld;
-		
-		let addPosZero = 0;
-		let addPosOne = 0;
-		if(hChange > 0){
-			addPosZero = 1;
-		}else if(hChange < 0){
-			addPosZero = -1;
-		}
-
-		if(vChange > 0){
-			addPosOne = 1;
-		}else if(vChange < 0){
-			addPosOne = -1;
-		}
-		
-		let squaresMoved = Math.abs(vChange) + Math.abs(hChange);		
-
-		// check if no pieces are in the way
-		for(var i = 0; i < squaresMoved-1;i++){
-			pos = String.fromCharCode(pos.charCodeAt(0)+addPosZero) + (pos[1]-'0'+addPosOne);
-			console.log(pos);
-			if(document.getElementById(pos).innerHTML!="")
-				return false;
-		}
-		return true;
+	if(rowChange != 0 && colChange != 0){
+		return false;
 	}
-	return false
-}
 
-
-// check Black King for legal move
-function checkBKing(){
-	let vAbsChange = Math.abs(vChange);
-	let hAbsChange = Math.abs(hChange);
+	let pos = currPosOld;
 	
-	if(vAbsChange <= 1 && hAbsChange <= 1){
-		// Check if a white pawn will check king
-		try{	
-			let tempPos = currPosNew;
-			tempPos = String.fromCharCode(tempPos.charCodeAt(0)-1) + (tempPos[1]-'0'-1);
-			if(document.getElementById(tempPos).firstChild.name=="wP")
-				return false;
-		}catch(e){}
-		
-		// Check if a white pawn will check king
-		try{	
-			let tempPos = currPosNew;
-			tempPos = String.fromCharCode(tempPos.charCodeAt(0)+1) + (tempPos[1]-'0'-1);
-			if(document.getElementById(tempPos).firstChild.name=="wP")
-				return false;
-		}catch(e){}
+	let addPosZero = 0;
+	let addPosOne = 0;
+	if(rowChange > 0){
+		addPosZero = 1;
+	}else if(rowChange < 0){
+		addPosZero = -1;
+	}
 
-		// Check is a king next to a king by pass opp king
-		if(isKingByKing("wK"))
+	if(colChange > 0){
+		addPosOne = 1;
+	}else if(colChange < 0){
+		addPosOne = -1;
+	}
+	
+	let squaresMoved = Math.abs(rowChange) + Math.abs(colChange);		
+
+	// check if no pieces are in the way
+	for(let i = 1; i < squaresMoved; ++i){
+		if(chessBoard.board[pos[0] + i * addPosZero][pos[1] + i * addPosOne] != "")
 			return false;
-
-		return true;
 	}
 
-	// Castling black queen side
-	if( BK && BR1 && currPosNew == "c8"){
-		// Check if there are no piece preventing castling
-		for(var i = 0; i < 3;i++){
-			let tempPos = String.fromCharCode(98+i)+'8';
-			if(document.getElementById(tempPos).innerHTML!="" || isKingCheck(tempPos,playerTurn))
-				return false;
-		}
-		document.getElementById("d8").innerHTML = document.getElementById("a8").innerHTML;
-		document.getElementById("a8").innerHTML = "";
-		WK = false;
-		WR1 = false;
-		return true;
+	let fromSquare = chessBoard.board[row][col];
+	let toSquare = chessBoard.board[pos[0] + rowChange][pos[1] + colChange]; 
+	if(toSquare != "" && fromSquare.color == toSquare.color){
+		return false;
 	}
-	
-	// Castling black king side
-	if( BK && BR2 && currPosNew == "g8"){
-		// Check if there are no piece preventing castling
-		for(var i = 0; i < 2;i++){
-			let tempPos = String.fromCharCode(102+i)+'8';
-			if(document.getElementById(tempPos).innerHTML!="" || isKingCheck(tempPos,playerTurn))
-				return false;
-		}
-		document.getElementById("f8").innerHTML = document.getElementById("h8").innerHTML;
-		document.getElementById("h8").innerHTML = "";
-		BK = false;
-		BR2 = false;
-		return true;
-	}	
-	return false;	
+
+	return true;
 }
 
 // check Black Pawn for legal move
-function checkBPawn(){
+function checkPawn(){
+	let rowDirection = currPiece.color == "w" ? 1 : -1; 
+
+	let pos;
 	//pawn can move up if no piece is there
-	if(vChange == -1 && hChange == 0){
-		if(pieceOnMove=="")
-			return true;
+	if(rowChange == rowDirection && colChange == 0){
+		pos = currPosNew;
+		if(chessBoard.board[pos[0]][pos[1]] != ""){
+			return false;
+		}
+		return true;
 	}
 
-	//check to see if piece can eat one diagonal
-	if(vChange == -1 && (hChange == -1 || hChange == 1)){
-		if(pieceOnMove !="" && pieceOnMove[0]=="w"){
-			return true;
-		}else{ // check En Passant
-			try{
-				let checkPos = prevPosOld[0] + (prevPosOld[1]-'0'+2);
-				if(prevPosOld[1] == '2' && checkPos == prevPosNew && currPosNew == prevPosOld[0] + '3' && prevPiece == "wP"){
-					document.getElementById(prevPosNew).innerHTML="";
-					return true;
-				}
-			}catch(e){ // ignore if cant find
+	// check to see double move on the first jump only
+	let pawnRow = currPiece.color == "w" ? 1 : 6;
+	if(rowChange == rowDirection * 2 && colChange == 0 && currPosOld[0] == pawnRow){
+		pos = currPosOld;
+		for(let i = 1; i <= 2; ++i){
+			if(chessBoard.board[pos[0] + i*rowDirection][pawnRow] != ""){
+				return false;
 			}
 		}
-	}
-
-	// check to see double move on the first jump only
-	if(vChange == -2 && hChange == 0 && currPosOld[1] == 7){
-		let pos = currPosOld;
-		pos = pos[0] + (pos[1]-'0'-1);
-		if(document.getElementById(pos).innerHTML!="")
-			return false;
-		pos = pos[0] + (pos[1]-'0'-1);
-		if(document.getElementById(pos).innerHTML!="")
-			return false;
 		return true;
-	}
-	
-	return false;
-}
-
-// check White King for legal move
-function checkWKing(){
-	let vAbsChange = Math.abs(vChange);
-	let hAbsChange = Math.abs(hChange);
-	
-	if(vAbsChange <= 1 && hAbsChange <= 1){
-		// Check if a black pawn will check king
-		try{	
-			let tempPos = currPosNew;
-			tempPos = String.fromCharCode(tempPos.charCodeAt(0)-1) + (tempPos[1]-'0'+1);
-			if(document.getElementById(tempPos).firstChild.name=="bP")
-				return false;
-		}catch(e){}
-		
-		// Check if a black pawn will check king
-		try{	
-			let tempPos = currPosNew;
-			tempPos = String.fromCharCode(tempPos.charCodeAt(0)+1) + (tempPos[1]-'0'+1);
-			if(document.getElementById(tempPos).firstChild.name=="bP")
-				return false;
-		}catch(e){}
-		
-		// Check is a king next to a king by pass opp king
-		if(isKingByKing("bK"))
-			return false;
-
-		return true;
-	}
-	
-	// Castling white queen side
-	if( WK && WR1 && currPosNew == "c1"){
-		//king is check return false
-		if(isKingCheck(currPosOld,playerTurn))
-			return false;
-		
-		// Check if there are no piece preventing castling
-		for(var i = 0; i < 3;i++){
-			let tempPos = String.fromCharCode(98+i)+'1';
-			if(document.getElementById(tempPos).innerHTML!="" || isKingCheck(tempPos,playerTurn))
-				return false;
-		}
-
-		document.getElementById("d1").innerHTML = document.getElementById("a1").innerHTML;
-		document.getElementById("a1").innerHTML = "";
-		WK = false;
-		WR1 = false;
-		return true;
-	}
-	
-	// Castling white king side
-	if( WK && WR2 && currPosNew == "g1"){
-		//king is check return false;	
-		if(isKingCheck(currPosOld,playerTurn))
-			return false;
-
-		// Check if there are no piece preventing castling
-		for(var i = 0; i < 2;i++){
-			let tempPos = String.fromCharCode(102+i)+'1';
-			if(document.getElementById(tempPos).innerHTML="" || isKingCheck(tempPos,playerTurn))
-				return false;
-		}
-
-		document.getElementById("f1").innerHTML = document.getElementById("h1").innerHTML;
-		document.getElementById("h1").innerHTML = "";
-		WK = false;
-		WR2 = false;
-		return true;
-	}
-
-	
-	return false;
-}
-
-
-// check White Pawn for legal move
-function checkWPawn(){
-	//pawn can move up if no piece is there
-	if(vChange == 1 && hChange == 0){
-		if(pieceOnMove=="")
-			return true;
 	}
 
 	//check to see if piece can eat one diagonal
-	if(vChange == 1 && (hChange == -1 || hChange == 1)){
-		if(pieceOnMove !="" && pieceOnMove[0]=="b"){
-			return true;
-		}else{ // check En Passant
-			try{
-				let checkPos = prevPosOld[0] + (prevPosOld[1]-'2');
-				if(prevPosOld[1] == '7' && checkPos == prevPosNew && currPosNew == prevPosOld[0] + '6' && prevPiece=="bP"){
-					document.getElementById(prevPosNew).innerHTML="";
-					return true;
-				}
-			}catch(e){} // ignore if cant find
-		}
-	}
+	if(rowChange == rowDirection && (colChange == -1 || colChange == 1)){
+		pos = currPosNew;
+		let tempPiece = chessBoard.board[pos[0]][pos[1]];
 
-	// check to see double move on the first jump only
-	if(vChange == 2 && hChange == 0 && currPosOld[1] == 2){
-		let pos = currPosOld;
-		pos = pos[0] + (pos[1]-'0'+1);
-		if(document.getElementById(pos).innerHTML!="")
+		if(tempPiece != "" && tempPiece.color != currPiece.color)
+			return true;
+
+		// check En Passant
+		if(tempPiece != "" || prevPiece.notation != "P")
 			return false;
-		pos = pos[0] + (pos[1]-'0'+1);
-		if(document.getElementById(pos).innerHTML!="")
-			return false;
-		return true;
+		
+		tempPiece = prevPiece; 
+
+		pawnRow = tempPiece.color == "w" ? 1 : 6;
+		let rowAbsChange = Math.abs(prevPosOld[0] - prevPosNew[0]);
+		if(prevPiece.color != currPiece.color && prevPosNew[0] + rowDirection == pos[1] && prevPosNew[1] == pos[1] && rowAbsChange == 2 && rowChange == rowDirection){
+			return true;
+		}
 	}
 	
 	return false;
+}
+
+// check Black King for legal move
+function checkKing(){
+	let rowAbsChange = Math.abs(rowChange);
+	let colAbsChange = Math.abs(colChange);
+
+	if(rowAbsChange <= 1 && colAbsChange <= 1){
+		let pos = currPosNew;
+		let tempPiece = chessBoard.board[pos[0]][pos[1]];
+		if(tempPiece == "" || tempPiece.color != currPiece.color){
+			return true;
+		}
+	}
+
+	return false;	
 }
 
 function isKingCheck(kingPos, team){
