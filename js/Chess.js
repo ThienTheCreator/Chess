@@ -77,7 +77,6 @@ function createBoard(){
 let notationTable = new Object();
 function loadPieces(){
 	let backRow = ["R", "N", "B", "Q", "K", "B", "N", "R"];
-	let uniqueId = 1;
 	for(let i = 0; i < 8; ++i){
 		chessBoard.board[0][i] = new Piece("w", backRow[i], i + 1);
 		chessBoard.board[1][i] = new Piece("w", "P", i + 9);
@@ -180,7 +179,7 @@ function loadBoard(){
 	updateDisplayBoard();
 }
 
-// TODO: 
+// TODO: Later 
 function movePiece(fromPosition, toPosition){
 	document.getElementById(toPosition).innerHTML = document.getElementById(fromPosition).innerHTML;
 }
@@ -309,77 +308,6 @@ function checkMove(event){
 	return legal;
 }
 
-// check Black Bishop for legal move
-function checkBishop(){
-	let rowAbsChange = Math.abs(rowChange);
-	let colAbsChange = Math.abs(colChange);
-
-
-	// check diagonal move
-	if(rowAbsChange !== colAbsChange || rowAbsChange == 0)
-		return false;
-
-	let pos = currPosOld;
-	
-	let addPosZero = 0;
-	let addPosOne = 0;
-	if(rowChange>0){
-		addPosZero = 1;
-	}else{
-		addPosZero = -1;
-	}
-
-	if(colChange > 0){
-		addPosOne = 1;
-	}else{
-		addPosOne = -1;
-	}
-	
-	// check diagonal if a piece is in the way
-	let row = pos[0];
-	let col = pos[1];
-	// check diagonal if a piece is in the way
-	for(let i = 1; i < rowAbsChange;i++){
-		if(chessBoard.board[row + i * addPosZero][col + i * addPosOne] != ""){
-			return false;
-		}
-	}
-
-	let fromSquare = chessBoard.board[row][col];
-	let toSquare = chessBoard.board[row + rowChange][col + colChange];
-	if(toSquare != "" && fromSquare.color == toSquare.color)	
-		return false;
-
-	return true;
-}
-
-
-
-// check Knight for legal move
-function checkKnight(){
-	let rowAbsChange = Math.abs(rowChange);
-	let colAbsChange = Math.abs(colChange);
-	
-	// check to see if knight move in an L
-	if((rowAbsChange == 1 && colAbsChange == 2) || (rowAbsChange == 2 && colAbsChange == 1)){
-		return true;
-	}
-
-	let pos = currPosOld;
-	
-	let fromSquare = chessBoard.board[row][col];
-	let toSquare = chessBoard.board[row + rowChange][col + colChange];
-	if(toSquare != "" && fromSquare.color == toSquare.color)	
-		return false;
-	
-	return false;
-}
-
-
-// check Queen for legal move
-function checkQueen(){
-	return checkBishop() || checkRook();
-}
 
 // check Rook for legal move
 function checkRook(){
@@ -413,13 +341,89 @@ function checkRook(){
 			return false;
 	}
 
+	let row = currPosOld[0];
+	let col = currPosOld[1];
 	let fromSquare = chessBoard.board[row][col];
-	let toSquare = chessBoard.board[pos[0] + rowChange][pos[1] + colChange]; 
-	if(toSquare != "" && fromSquare.color == toSquare.color){
-		return false;
+	row = currPosNew[0];
+	col = currPosNew[1];
+	let toSquare = chessBoard.board[row][col]; 
+	if(toSquare == "" || fromSquare.color != toSquare.color){
+		return true;
 	}
 
-	return true;
+	return false;
+}
+
+// check Knight for legal move
+function checkKnight(){
+	let rowAbsChange = Math.abs(rowChange);
+	let colAbsChange = Math.abs(colChange);
+	
+	// check to see if knight move in an L
+	if((rowAbsChange == 1 && colAbsChange == 2) || (rowAbsChange == 2 && colAbsChange == 1)){
+		let row = currPosOld[0];
+		let col = currPosOld[1];
+		let fromSquare = chessBoard.board[row][col];
+
+		row = currPosNew[0];
+		col = currPosNew[1];
+		let toSquare = chessBoard.board[row][col];
+		if(toSquare == "" || fromSquare.color != toSquare.color)	
+			return true;
+	}
+	
+	return false;
+}
+
+// check Black Bishop for legal move
+function checkBishop(){
+	let rowAbsChange = Math.abs(rowChange);
+	let colAbsChange = Math.abs(colChange);
+
+	// check diagonal move
+	if(rowAbsChange == colAbsChange && rowAbsChange != 0){
+
+		let pos = currPosOld;
+		
+		let addPosZero = 0;
+		let addPosOne = 0;
+		if(rowChange>0){
+			addPosZero = 1;
+		}else{
+			addPosZero = -1;
+		}
+	
+		if(colChange > 0){
+			addPosOne = 1;
+		}else{
+			addPosOne = -1;
+		}
+		
+		// check diagonal if a piece is in the way
+		let row = pos[0];
+		let col = pos[1];
+		// check diagonal if a piece is in the way
+		for(let i = 1; i < rowAbsChange;i++){
+			if(chessBoard.board[row + i * addPosZero][col + i * addPosOne] != ""){
+				return false;
+			}
+		}
+	
+		let fromSquare = chessBoard.board[row][col];
+		
+		row = currPosNew[0];
+		col = currPosNew[1];
+		let toSquare = chessBoard.board[row][col];
+		if(toSquare == "" || fromSquare.color == toSquare.color)	
+			return true;
+	}
+
+	return false;
+}
+
+// check Queen for legal move
+function checkQueen(){
+	return checkBishop() || checkRook();
 }
 
 // check Black Pawn for legal move
@@ -427,10 +431,13 @@ function checkPawn(){
 	let rowDirection = currPiece.color == "w" ? 1 : -1; 
 
 	let pos;
+	let row;
+	let col;
 	//pawn can move up if no piece is there
 	if(rowChange == rowDirection && colChange == 0){
-		pos = currPosNew;
-		if(chessBoard.board[pos[0]][pos[1]] != ""){
+		row = currPosNew[0];
+		col = currPosNew[1];
+		if(chessBoard.board[row][col] != ""){
 			return false;
 		}
 		return true;
@@ -439,9 +446,9 @@ function checkPawn(){
 	// check to see double move on the first jump only
 	let pawnRow = currPiece.color == "w" ? 1 : 6;
 	if(rowChange == rowDirection * 2 && colChange == 0 && currPosOld[0] == pawnRow){
-		pos = currPosOld;
+		col = currPosOld[1];
 		for(let i = 1; i <= 2; ++i){
-			if(chessBoard.board[pos[0] + i*rowDirection][pawnRow] != ""){
+			if(chessBoard.board[pawnRow + i*rowDirection][col] != ""){
 				return false;
 			}
 		}
@@ -450,8 +457,9 @@ function checkPawn(){
 
 	//check to see if piece can eat one diagonal
 	if(rowChange == rowDirection && (colChange == -1 || colChange == 1)){
-		pos = currPosNew;
-		let tempPiece = chessBoard.board[pos[0]][pos[1]];
+		row = currPosNew[0];
+		col = currPosNew[1];
+		let tempPiece = chessBoard.board[row][col];
 
 		if(tempPiece != "" && tempPiece.color != currPiece.color)
 			return true;
@@ -478,8 +486,10 @@ function checkKing(){
 	let colAbsChange = Math.abs(colChange);
 
 	if(rowAbsChange <= 1 && colAbsChange <= 1){
-		let pos = currPosNew;
-		let tempPiece = chessBoard.board[pos[0]][pos[1]];
+		let row = currPosNew[0];
+		let col = currPosNew[1];
+
+		let tempPiece = chessBoard.board[row][col];
 		if(tempPiece == "" || tempPiece.color != currPiece.color){
 			return true;
 		}
@@ -488,20 +498,20 @@ function checkKing(){
 	return false;	
 }
 
-function isKingCheck(kingPos, team){
-	let tempPos = kingPos;
-	let oppTeam;
-	
-	if(team == "b"){
-		oppTeam = "w";
-	}else{
-		oppTeam = "b";
+function isKingInCheck(){
+	let notTurnPlayer = playerTurn != "w" ? "w" : "b";
+	let kingPos;
+
+	for(let row = 0; i < 8; ++i){
+		for(let col = 0; j < 8; ++j){
+			if( chessBoard.board[row][col] != "" && 
+				chessBoard.color == playerTurn && 
+				chessBoard.notation == "K"){
+				
+				kingPos = [row, col];
+			}	
+		}
 	}
-	
-	let pawn = oppTeam + "P";
-	let bishop = oppTeam + "B";
-	let rook = oppTeam + "R";
-	let queen = oppTeam + "Q";
 	
 	// Check upper left diagonal for check
 	while(0 < tempPos.charCodeAt(0)-'a'.charCodeAt(0) && (tempPos[1]-'0') < 8){
