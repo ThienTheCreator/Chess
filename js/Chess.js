@@ -226,8 +226,15 @@ function drop(event){
 	if(!checkMove(event))
 		return
 
+	let tempBoard = JSON.parse(JSON.stringify(chessBoard.board));
+	
 	chessBoard.board[currPosNew[0]][currPosNew[1]] = chessBoard.board[currPosOld[0]][currPosOld[1]];
 	chessBoard.board[currPosOld[0]][currPosOld[1]] = "";
+
+	if(isKingInCheck()){
+		chessBoard.board = tempBoard;
+		return;
+	}
 
 	prevPosOld = currPosOld;
 	prevPosNew = currPosNew;
@@ -502,140 +509,46 @@ function isKingInCheck(){
 	let notTurnPlayer = playerTurn != "w" ? "w" : "b";
 	let kingPos;
 
-	for(let row = 0; i < 8; ++i){
-		for(let col = 0; j < 8; ++j){
+	for(let row = 0; row < 8; ++row){
+		for(let col = 0; col < 8; ++col){
 			if( chessBoard.board[row][col] != "" && 
-				chessBoard.color == playerTurn && 
-				chessBoard.notation == "K"){
+				chessBoard.board[row][col].color == playerTurn && 
+				chessBoard.board[row][col].notation == "K"){
 				
 				kingPos = [row, col];
 			}	
 		}
 	}
-	
-	// Check upper left diagonal for check
-	while(0 < tempPos.charCodeAt(0)-'a'.charCodeAt(0) && (tempPos[1]-'0') < 8){
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)-1) + (tempPos[1]-'0'+1); 
-		if(document.getElementById(tempPos).innerHTML!=""){
-			let tempPiece = document.getElementById(tempPos).firstChild.name;
-			if(tempPiece != queen && tempPiece != bishop){
-				break;
-			}else{
-				return true;
+
+	const checkLine = (kingPos, rowChange, colChange, notation) => {
+		let tempRow = kingPos[0] + rowChange;
+		let tempCol = kingPos[1] + colChange;
+		while(0 <= tempRow && tempRow < 8 && 0 <= tempCol && tempCol < 8){
+			if(chessBoard.board[tempRow][tempCol] != ""){
+				let pieceNotation = chessBoard.board[tempRow][tempCol].notation;
+
+				for(let i = 0; i < notation.length; ++i){
+					if(pieceNotation == notation[i])
+						return true;
+				}
+				return false;
 			}
+
+			tempRow = tempRow + rowChange;
+			tempCol = tempCol + colChange; 
 		}
+
+		return false;
 	}
 	
-	tempPos = kingPos;
-	// Check upper right diagonal for check
-	while(0 > tempPos.charCodeAt(0)-'h'.charCodeAt(0) && (tempPos[1]-'0') < 8){
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)+1) + (tempPos[1]-'0'+1); 
-		if(document.getElementById(tempPos).innerHTML!=""){
-			let tempPiece = document.getElementById(tempPos).firstChild.name;
-			if(tempPiece != queen && tempPiece != bishop){
-				break;
-			}else{
-				return true;
-			}
-		}
-	}
+	let checkUpperLeftDiagonal  = checkLine(kingPos, 1, -1, ["B", "Q"]);
+	let checkUpperRightDiagonal = checkLine(kingPos, 1, 1, ["B", "Q"]);
+	let checkLowerLeftDiagonal  = checkLine(kingPos, -1, -1, ["B", "Q"]);
+	let checkLowerRightDiagonal = checkLine(kingPos, -1, 1, ["B", "Q"]);
 
-	tempPos = kingPos;
-	// Check lower right diagonal for check
-	while(0 > tempPos.charCodeAt(0)-'h'.charCodeAt(0) && (tempPos[1]-'0') > 1){
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)+1) + (tempPos[1]-'0'-1); 
-		if(document.getElementById(tempPos).innerHTML!=""){
-			let tempPiece = document.getElementById(tempPos).firstChild.name;
-			if(tempPiece != queen && tempPiece != bishop){
-				break;
-			}else{
-				return true;
-			}
-		}
-	}
-
-	tempPos = kingPos;
-
-	// Check lower left diagonal for check
-	while(0 < tempPos.charCodeAt(0)-'a'.charCodeAt(0) && (tempPos[1]-'0') > 1){
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)-1) + (tempPos[1]-'0'-1); 
-		if(document.getElementById(tempPos).innerHTML!=""){
-			let tempPiece = document.getElementById(tempPos).firstChild.name;
-			if(tempPiece != queen && tempPiece != bishop){
-				break;
-			}else{
-				return true;
-			}
-		}
-	}
-
-	tempPos = kingPos;
-
-	// Check upper straight line for check
-	while( (tempPos[1]-'0') < 8 ){
-		tempPos = tempPos[0] + (tempPos[1]-'0'+1); 
-		if(document.getElementById(tempPos).innerHTML!=""){
-			let tempPiece = document.getElementById(tempPos).firstChild.name;
-			if(tempPiece != queen && tempPiece != rook){
-				break;
-			}else{
-				return true;
-			}
-		}
-	}
-
-	tempPos = kingPos;
-
-	// Check right straight line for check
-	while( 0 > tempPos.charCodeAt(0)-'h'.charCodeAt(0)){
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)+1) + tempPos[1];
-		if(document.getElementById(tempPos).innerHTML!=""){
-			let tempPiece = document.getElementById(tempPos).firstChild.name;
-			if(tempPiece != queen && tempPiece != rook){
-				break;
-			}else{
-				return true;
-			}
-		}
-	}
-	
-	tempPos = kingPos;
-	
-	// Check lower straight line for check
-	while( (tempPos[1]-'0') > 1 ){
-		tempPos = tempPos[0] + (tempPos[1]-'0'-1); 
-		if(document.getElementById(tempPos).innerHTML!=""){
-			let tempPiece = document.getElementById(tempPos).firstChild.name;
-			if(tempPiece != queen && tempPiece != rook){
-				break;
-			}else{
-				return true;
-			}
-		}
-	}
-
-	tempPos = kingPos;
-	
-	// Check left straight line for check
-	while(0 < tempPos.charCodeAt(0)-'a'.charCodeAt(0)){
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)-1) + tempPos[1]; 
-		if(document.getElementById(tempPos).innerHTML!=""){
-			let tempPiece = document.getElementById(tempPos).firstChild.name;
-			if(tempPiece != queen && tempPiece != rook){
-				break;
-			}else{
-				return true;
-			}
-		}
-	}
-	
-	//Check knights for check 
-	if(knightCheck(kingPos,team))
+	if(checkUpperLeftDiagonal || checkUpperRightDiagonal || checkLowerLeftDiagonal || checkLowerRightDiagonal){
 		return true;
-
-	//Check if a pawn is checking the king
-	if(isPawnDiagonal(kingPos))
-		return true;
+	}
 
 	return false;
 }
