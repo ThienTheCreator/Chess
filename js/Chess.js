@@ -479,7 +479,9 @@ function checkPawn(){
 
 		pawnRow = tempPiece.color == "w" ? 1 : 6;
 		let rowAbsChange = Math.abs(prevPosOld[0] - prevPosNew[0]);
-		if(prevPiece.color != currPiece.color && prevPosNew[0] + rowDirection == pos[1] && prevPosNew[1] == pos[1] && rowAbsChange == 2 && rowChange == rowDirection){
+		if( prevPiece.color != currPiece.color && prevPosNew[0] + rowDirection == pos[1] && 
+			prevPosNew[1] == pos[1] && rowAbsChange == 2 && rowChange == rowDirection){
+			
 			return true;
 		}
 	}
@@ -523,12 +525,12 @@ function isKingInCheck(){
 	const checkLine = (kingPos, rowChange, colChange, notation) => {
 		let tempRow = kingPos[0] + rowChange;
 		let tempCol = kingPos[1] + colChange;
-		while(0 <= tempRow && tempRow < 8 && 0 <= tempCol && tempCol < 8){
+		while(0 <= tempRow && tempRow <= 7 && 0 <= tempCol && tempCol <= 7){
 			if(chessBoard.board[tempRow][tempCol] != ""){
-				let pieceNotation = chessBoard.board[tempRow][tempCol].notation;
+				let tempPiece = chessBoard.board[tempRow][tempCol];
 
 				for(let i = 0; i < notation.length; ++i){
-					if(pieceNotation == notation[i])
+					if(tempPiece.notation == notation[i] && tempPiece.color == notTurnPlayer)
 						return true;
 				}
 				return false;
@@ -541,82 +543,40 @@ function isKingInCheck(){
 		return false;
 	}
 	
-	let checkUpperLeftDiagonal  = checkLine(kingPos, 1, -1, ["B", "Q"]);
-	let checkUpperRightDiagonal = checkLine(kingPos, 1, 1, ["B", "Q"]);
-	let checkLowerLeftDiagonal  = checkLine(kingPos, -1, -1, ["B", "Q"]);
-	let checkLowerRightDiagonal = checkLine(kingPos, -1, 1, ["B", "Q"]);
+	// Check if king is check by bishop or queen
+	let checkTopLeftLine  = checkLine(kingPos,  1, -1, ["B", "Q"]);
+	let checkTopRightLine = checkLine(kingPos,  1,  1, ["B", "Q"]);
+	let checkBotLeftLine  = checkLine(kingPos, -1, -1, ["B", "Q"]);
+	let checkBotRightLine = checkLine(kingPos, -1,  1, ["B", "Q"]);
 
-	if(checkUpperLeftDiagonal || checkUpperRightDiagonal || checkLowerLeftDiagonal || checkLowerRightDiagonal){
+	if( checkTopLeftLine || checkTopRightLine || checkBotLeftLine || checkBotRightLine ){
 		return true;
 	}
 
-	return false;
-}
+	// Check if king is check by rook or queen
+	let checkLeftLine  = checkLine(kingPos,  0, -1, ["R", "Q"]);
+	let checkTopLine   = checkLine(kingPos,  1,  0, ["R", "Q"]);
+	let checkRightLine = checkLine(kingPos,  0,  1, ["R", "Q"]);
+	let checkBotLine   = checkLine(kingPos, -1,  0, ["R", "Q"]);
 
-function knightCheck(kingPos,team){
-	let knight;
-	if(team == "w")
-		knight = "b" + "N";
-	else{
-		knight = "w" + "N"; 
-	} 
-	tempPos = kingPos;	
-	try{
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)-1) + (tempPos[1]-'0'+2);
-		if(document.getElementById(tempPos).firstChild.name == knight)
-			return true;
-	}catch(e){}
-	
-	tempPos = kingPos;	
-	try{
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)+1) + (tempPos[1]-'0'+2);
-		if(document.getElementById(tempPos).firstChild.name == knight)
-			return true;
-	}catch(e){}
-	
-	
-	tempPos = kingPos;	
-	try{
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)-2) + (tempPos[1]-'0'+1);
-		if(document.getElementById(tempPos).firstChild.name == knight)
-			return true;
-	}catch(e){}
+	if( checkLeftLine || checkRightLine || checkTopLine || checkBotLine ){
+		return true;
+	}
 
-	tempPos = kingPos;	
-	try{
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)+2) + (tempPos[1]-'0'+1);
-		if(document.getElementById(tempPos).firstChild.name == knight)
-			return true;
-	}catch(e){}
+	// Check if king is check by knight
+	let addValue = [1,2,-1,-2,-1,2,1,-2,1];
+	for(let i = 0; i < addValue.length - 1; ++i){
+		let addRow = addValue[i];
+		let addCol = addValue[i + 1];
 
-	tempPos = kingPos;	
-	try{
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)-1) + (tempPos[1]-'0'-2);
-		if(document.getElementById(tempPos).firstChild.name == knight)
-			return true;
-	}catch(e){}
-	
-	tempPos = kingPos;	
-	try{
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)+1) + (tempPos[1]-'0'-2);
-		if(document.getElementById(tempPos).firstChild.name == knight)
-			return true;
-	}catch(e){}
-	
-	
-	tempPos = kingPos;	
-	try{
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)-2) + (tempPos[1]-'0'-1);
-		if(document.getElementById(tempPos).firstChild.name == knight)
-			return true;
-	}catch(e){}
-
-	tempPos = kingPos;	
-	try{
-		tempPos = String.fromCharCode(tempPos.charCodeAt(0)+2) + (tempPos[1]-'0'-1);
-		if(document.getElementById(tempPos).firstChild.name == knight)
-			return true;
-	}catch(e){}
+		let row = kingPos[0] + addRow;
+		let col = kingPos[1] + addCol;
+		if(0 <= row && row <= 7 && 0 <= col && col <= 7){
+			let tempPiece = chessBoard.board[row][col];
+			if(tempPiece != "" && tempPiece.notation == "N" && tempPiece.color == notTurnPlayer)
+				return true;
+		}
+	}
 
 	return false;
 }
