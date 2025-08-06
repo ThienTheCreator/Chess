@@ -199,6 +199,7 @@ let prevPiece;
 let pieceOnMove;
 let playerTurn = "w";
 
+let isEnPassant = false;
 // For cattling
 let BR1 = true;
 let BR2 = true;
@@ -230,6 +231,17 @@ function drop(event){
 	
 	chessBoard.board[currPosNew[0]][currPosNew[1]] = chessBoard.board[currPosOld[0]][currPosOld[1]];
 	chessBoard.board[currPosOld[0]][currPosOld[1]] = "";
+
+	if(isEnPassant){
+		let row = prevPosNew[0];
+		let col = prevPosNew[1];
+		chessBoard.board[row][col] = "";
+		isEnPassant = false;
+	}
+
+	if(currPiece.notation == "P" && (currPosNew[0] == 0 || currPosNew[0] == 7)){
+		chessBoard.board[currPosNew[0]][currPosNew[1]].notation = "Q";
+	}
 
 	if(isKingInCheck()){
 		chessBoard.board = tempBoard;
@@ -421,7 +433,7 @@ function checkBishop(){
 		row = currPosNew[0];
 		col = currPosNew[1];
 		let toSquare = chessBoard.board[row][col];
-		if(toSquare == "" || fromSquare.color == toSquare.color)	
+		if(toSquare == "" || fromSquare.color != toSquare.color)	
 			return true;
 	}
 
@@ -437,7 +449,6 @@ function checkQueen(){
 function checkPawn(){
 	let rowDirection = currPiece.color == "w" ? 1 : -1; 
 
-	let pos;
 	let row;
 	let col;
 	//pawn can move up if no piece is there
@@ -479,9 +490,10 @@ function checkPawn(){
 
 		pawnRow = tempPiece.color == "w" ? 1 : 6;
 		let rowAbsChange = Math.abs(prevPosOld[0] - prevPosNew[0]);
-		if( prevPiece.color != currPiece.color && prevPosNew[0] + rowDirection == pos[1] && 
-			prevPosNew[1] == pos[1] && rowAbsChange == 2 && rowChange == rowDirection){
-			
+		if( prevPiece.color != currPiece.color && prevPosNew[0] + rowDirection == row && 
+			prevPosNew[1] == col && rowAbsChange == 2 && rowChange == rowDirection){
+		
+			isEnPassant = true;
 			return true;
 		}
 	}
@@ -578,73 +590,37 @@ function isKingInCheck(){
 		}
 	}
 
-	return false;
-}
+	// Check if king is by king
+	addValue = [-1,-1,0,-1,1,0,1,1,-1];
+	for(let i = 0; i < addValue.length - 1; ++i){
+		let addRow = addValue[i];
+		let addCol = addValue[i + 1];
 
-function isKingByKing(oppKing){
-	// Check if an opponent king will be next to the king for the top and bottom 3 squares
-		let tempPos1 = String.fromCharCode(currPosNew.charCodeAt(0)-2) + (currPosNew[1]-'0'+1);
-		let tempPos2 = String.fromCharCode(currPosNew.charCodeAt(0)-2) + (currPosNew[1]-'0'-1);
-		for(var i = 0; i < 3;i++){
-			try{
-				tempPos1 = String.fromCharCode(tempPos1.charCodeAt(0)+1) + (tempPos1[1]);
-				console.log(tempPos1);
-				if(document.getElementById(tempPos1).firstChild.name==oppKing)
-					return true;
-			}
-			catch(e){}
-			try{
-				tempPos2 = String.fromCharCode(tempPos2.charCodeAt(0)+1) + (tempPos2[1]);
-				console.log(tempPos2);
-				if(document.getElementById(tempPos2).firstChild.name==oppKing)
-					return true;
-			}
-			catch(e){}
+		let row = kingPos[0] + addRow;
+		let col = kingPos[1] + addCol;
+		if(0 <= row && row <= 7 && 0 <= col && col <= 7){
+			let tempPiece = chessBoard.board[row][col];
+			if(tempPiece != "" && tempPiece.notation == "K" && tempPiece.color == notTurnPlayer)
+				return true;
 		}
-		
-		//Check the left side for an opponent king	
-		try{
-			let tempPos = String.fromCharCode(currPosNew.charCodeAt(0)-1) + currPosNew[1];
-			if(document.getElementById(tempPos).firstChild.name == oppKing)
-				return true;
-		}catch(e){}
-
-		//Check the right side for an opponent king
-		try{
-			let tempPos = String.fromCharCode(currPosNew.charCodeAt(0)+1) + currPosNew[1];
-			if(document.getElementById(tempPos).firstChild.name == oppKing)
-				return true;
-		}catch(e){}	
-	return false;
-}
-
-function isPawnDiagonal(kingPos){
-	let oppPawn;
-	let tempPos1;
-	let tempPos2;
-	
-	//Choose the position depending on whose turn it is
-	if(playerTurn == "w"){
-		oppPawn = "bP";
-		tempPos1 = String.fromCharCode(kingPos.charCodeAt(0)-1) + (kingPos[1]-'0'+1);
-		tempPos2 = String.fromCharCode(kingPos.charCodeAt(0)+1) + (kingPos[1]-'0'+1);
-	}else{
-		oppPawn = "wP";
-		tempPos1 = String.fromCharCode(kingPos.charCodeAt(0)-1) + (kingPos[1]-'0'-1);
-		tempPos2 = String.fromCharCode(kingPos.charCodeAt(0)+1) + (kingPos[1]-'0'-1);
 	}
-	
-	// check left diagonal
-	try{
-		if(document.getElementById(tempPos1).firstChild.name==oppPawn)
-			return true;
-	}catch(e){}
 
-	// check left diagonal
-	try{
-		if(document.getElementById(tempPos2).firstChild.name==oppPawn)
+	// Check if king is check by pawn
+	let rowChange = playerTurn == "w" ? 1 : -1;
+	let row = kingPos[0] + rowChange;
+	let col = kingPos[1] - 1;
+	if(0 <= row && row <= 7 && 0 <= col && col <= 7){
+		let tempPiece = chessBoard.board[row][col];
+		if(tempPiece != "" && tempPiece.notation == "P" && tempPiece.color == notTurnPlayer)
 			return true;
-	}catch(e){}
+	}
+
+	col = kingPos[1] + 1;
+	if(0 <= row && row <= 7 && 0 <= col && col <= 7){
+		let tempPiece = chessBoard.board[row][col];
+		if(tempPiece != "" && tempPiece.notation == "P" && tempPiece.color == notTurnPlayer)
+			return true;
+	}
 
 	return false;
 }
