@@ -179,9 +179,9 @@ function loadBoard(){
 	updateDisplayBoard();
 }
 
-// TODO: Later 
-function movePiece(fromPosition, toPosition){
-	document.getElementById(toPosition).innerHTML = document.getElementById(fromPosition).innerHTML;
+function movePiece(oldRow, oldCol, newRow, newCol){
+	chessBoard.board[newRow][newCol] = chessBoard.board[oldRow][oldCol];
+	chessBoard.board[oldRow][oldCol] = "";
 }
 
 // Global var to check current and previous turn
@@ -200,13 +200,16 @@ let pieceOnMove;
 let playerTurn = "w";
 
 let isEnPassant = false;
+
 // For cattling
-let BR1 = true;
-let BR2 = true;
-let WR1 = true;
-let WR2 = true;
-let BK = true;
-let WK = true;
+let hasNotMovedBR1 = true;
+let hasNotMovedBR2 = true;
+let hasNotMovedBK = true;
+let hasNotMovedWR1 = true;
+let hasNotMovedWR2 = true;
+let hasNotMovedWK = true;
+let isCastle = false;
+let rookCastleMoved = [];
 
 // function to allow drop
 function allowDrop(event){
@@ -241,6 +244,17 @@ function drop(event){
 
 	if(currPiece.notation == "P" && (currPosNew[0] == 0 || currPosNew[0] == 7)){
 		chessBoard.board[currPosNew[0]][currPosNew[1]].notation = "Q";
+	}
+
+	if(isCastle){
+		let oldRookRow = rookCastleMoved[0][0];
+		let oldRookCol = rookCastleMoved[0][1];
+		let newRookRow = rookCastleMoved[1][0];
+		let newRockCol = rookCastleMoved[1][1];
+		
+		movePiece(oldRookRow, oldRookCol, newRookRow, newRockCol);
+		
+		isCastle = false;
 	}
 
 	if(isKingInCheck()){
@@ -501,18 +515,50 @@ function checkPawn(){
 	return false;
 }
 
-// check Black King for legal move
+// check King for legal move
 function checkKing(){
 	let rowAbsChange = Math.abs(rowChange);
 	let colAbsChange = Math.abs(colChange);
 
+	let row;
+	let col;
 	if(rowAbsChange <= 1 && colAbsChange <= 1){
-		let row = currPosNew[0];
-		let col = currPosNew[1];
+		row = currPosNew[0];
+		col = currPosNew[1];
 
 		let tempPiece = chessBoard.board[row][col];
 		if(tempPiece == "" || tempPiece.color != currPiece.color){
 			return true;
+		}
+	}
+
+	if(rowAbsChange == 0 && colAbsChange == 2){
+		let colChangeDirection = colChange < 0 ? -1 : 1;
+		let kingHasNotMoved;
+		let rookHasNotMoved;
+		if(playerTurn == "w"){
+			kingHasNotMoved = hasNotMovedWK;
+			rookHasNotMoved = colChange == -2 ? hasNotMovedWR1 : hasNotMovedWR2;
+		} else {
+			kingHasNotMoved = hasNotMovedBK;
+			rookHasNotMoved = colChange == -2 ? hasNotMovedBR1 : hasNotMovedBR2;
+		}
+
+
+		row = currPosOld[0];
+		col = currPosOld[1];
+		if(kingHasNotMoved && rookHasNotMoved){
+			for(let i = 1; i <= 2; ++i){
+				if(chessBoard.board[row][col + i * colChangeDirection] != ""){
+					return false;
+				}
+			}
+
+			isCastle = true;
+			let rookCol = colChangeDirection == -1 ? 0 : 7;
+			rookCastleMoved = [[row, rookCol], [row, col + colChangeDirection]];
+
+			return isCastle;
 		}
 	}
 
