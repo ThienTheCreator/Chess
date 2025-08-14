@@ -257,7 +257,7 @@ function drop(event){
 		isCastle = false;
 	}
 
-	if(isKingInCheck()){
+	if(isKingInCheck(chessBoard.board)){
 		chessBoard.board = tempBoard;
 		return;
 	}
@@ -552,6 +552,13 @@ function checkKing(){
 				if(chessBoard.board[row][col + i * colChangeDirection] != ""){
 					return false;
 				}
+
+				let tempBoard = JSON.parse(JSON.stringify(chessBoard.board));
+				tempBoard[row][col + i*colChangeDirection] = tempBoard[row][col];
+				tempBoard[row][col] = "";
+
+				if(isKingInCheck(tempBoard))
+					return false;
 			}
 
 			isCastle = true;
@@ -565,15 +572,15 @@ function checkKing(){
 	return false;	
 }
 
-function isKingInCheck(){
+function isKingInCheck(board){
 	let notTurnPlayer = playerTurn != "w" ? "w" : "b";
 	let kingPos;
 
 	for(let row = 0; row < 8; ++row){
 		for(let col = 0; col < 8; ++col){
-			if( chessBoard.board[row][col] != "" && 
-				chessBoard.board[row][col].color == playerTurn && 
-				chessBoard.board[row][col].notation == "K"){
+			if( board[row][col] != "" && 
+				board[row][col].color == playerTurn && 
+				board[row][col].notation == "K"){
 				
 				kingPos = [row, col];
 			}	
@@ -584,8 +591,8 @@ function isKingInCheck(){
 		let tempRow = kingPos[0] + rowChange;
 		let tempCol = kingPos[1] + colChange;
 		while(0 <= tempRow && tempRow <= 7 && 0 <= tempCol && tempCol <= 7){
-			if(chessBoard.board[tempRow][tempCol] != ""){
-				let tempPiece = chessBoard.board[tempRow][tempCol];
+			if(board[tempRow][tempCol] != ""){
+				let tempPiece = board[tempRow][tempCol];
 
 				for(let i = 0; i < notation.length; ++i){
 					if(tempPiece.notation == notation[i] && tempPiece.color == notTurnPlayer)
@@ -630,7 +637,7 @@ function isKingInCheck(){
 		let row = kingPos[0] + addRow;
 		let col = kingPos[1] + addCol;
 		if(0 <= row && row <= 7 && 0 <= col && col <= 7){
-			let tempPiece = chessBoard.board[row][col];
+			let tempPiece = board[row][col];
 			if(tempPiece != "" && tempPiece.notation == "N" && tempPiece.color == notTurnPlayer)
 				return true;
 		}
@@ -645,7 +652,7 @@ function isKingInCheck(){
 		let row = kingPos[0] + addRow;
 		let col = kingPos[1] + addCol;
 		if(0 <= row && row <= 7 && 0 <= col && col <= 7){
-			let tempPiece = chessBoard.board[row][col];
+			let tempPiece = board[row][col];
 			if(tempPiece != "" && tempPiece.notation == "K" && tempPiece.color == notTurnPlayer)
 				return true;
 		}
@@ -656,14 +663,14 @@ function isKingInCheck(){
 	let row = kingPos[0] + rowChange;
 	let col = kingPos[1] - 1;
 	if(0 <= row && row <= 7 && 0 <= col && col <= 7){
-		let tempPiece = chessBoard.board[row][col];
+		let tempPiece = board[row][col];
 		if(tempPiece != "" && tempPiece.notation == "P" && tempPiece.color == notTurnPlayer)
 			return true;
 	}
 
 	col = kingPos[1] + 1;
 	if(0 <= row && row <= 7 && 0 <= col && col <= 7){
-		let tempPiece = chessBoard.board[row][col];
+		let tempPiece = board[row][col];
 		if(tempPiece != "" && tempPiece.notation == "P" && tempPiece.color == notTurnPlayer)
 			return true;
 	}
