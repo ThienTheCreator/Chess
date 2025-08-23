@@ -6,7 +6,7 @@ class Piece{
 	}
 }
 
-class ChessBoard{
+class ChessGame{
 	constructor(board){
 		this.board = board;
 
@@ -49,9 +49,9 @@ class ChessBoard{
 }
 
 
-let chessBoard;
+let chessGame;
 function createBoard(){
-	chessBoard = new ChessBoard();
+	chessGame = new ChessGame();
 
 	let board = document.getElementsByClassName("board")[0];
 
@@ -78,10 +78,10 @@ let notationTable = new Object();
 function loadPieces(){
 	let backRow = ["R", "N", "B", "Q", "K", "B", "N", "R"];
 	for(let i = 0; i < 8; ++i){
-		chessBoard.board[0][i] = new Piece("w", backRow[i], i + 1);
-		chessBoard.board[1][i] = new Piece("w", "P", i + 9);
-		chessBoard.board[6][i] = new Piece("b", "P", i + 17);
-		chessBoard.board[7][i] = new Piece("b", backRow[i], i + 25);
+		chessGame.board[0][i] = new Piece("w", backRow[i], i + 1);
+		chessGame.board[1][i] = new Piece("w", "P", i + 9);
+		chessGame.board[6][i] = new Piece("b", "P", i + 17);
+		chessGame.board[7][i] = new Piece("b", backRow[i], i + 25);
 	}	
 }
 
@@ -103,7 +103,7 @@ function updateDisplayBoard(){
 	let square;
 	for(let row = 0; row < 8; ++row){
 		for(let col = 0; col < 8; ++col){
-			square = chessBoard.board[row][col];
+			square = chessGame.board[row][col];
 
 			if(square === undefined)
 				continue;
@@ -180,8 +180,8 @@ function loadBoard(){
 }
 
 function movePiece(oldRow, oldCol, newRow, newCol){
-	chessBoard.board[newRow][newCol] = chessBoard.board[oldRow][oldCol];
-	chessBoard.board[oldRow][oldCol] = "";
+	chessGame.board[newRow][newCol] = chessGame.board[oldRow][oldCol];
+	chessGame.board[oldRow][oldCol] = "";
 }
 
 // Global var to check current and previous turn
@@ -219,7 +219,7 @@ function allowDrop(event){
 // drag pieces
 function drag(event){
 	currPosOld = notationToIndex(event.target.parentNode.id);
-	currPiece = chessBoard.board[currPosOld[0]][currPosOld[1]];
+	currPiece = chessGame.board[currPosOld[0]][currPosOld[1]];
 }
 
 // drop pieces
@@ -230,20 +230,20 @@ function drop(event){
 	if(!checkMove(event))
 		return
 
-	let tempBoard = JSON.parse(JSON.stringify(chessBoard.board));
+	let tempBoard = JSON.parse(JSON.stringify(chessGame.board));
 	
-	chessBoard.board[currPosNew[0]][currPosNew[1]] = chessBoard.board[currPosOld[0]][currPosOld[1]];
-	chessBoard.board[currPosOld[0]][currPosOld[1]] = "";
+	chessGame.board[currPosNew[0]][currPosNew[1]] = chessGame.board[currPosOld[0]][currPosOld[1]];
+	chessGame.board[currPosOld[0]][currPosOld[1]] = "";
 
 	if(isEnPassant){
 		let row = prevPosNew[0];
 		let col = prevPosNew[1];
-		chessBoard.board[row][col] = "";
+		chessGame.board[row][col] = "";
 		isEnPassant = false;
 	}
 
 	if(currPiece.notation == "P" && (currPosNew[0] == 0 || currPosNew[0] == 7)){
-		chessBoard.board[currPosNew[0]][currPosNew[1]].notation = "Q";
+		chessGame.board[currPosNew[0]][currPosNew[1]].notation = "Q";
 	}
 
 	if(isCastle){
@@ -257,8 +257,8 @@ function drop(event){
 		isCastle = false;
 	}
 
-	if(isKingInCheck(chessBoard.board)){
-		chessBoard.board = tempBoard;
+	if(isKingInCheck(chessGame.board)){
+		chessGame.board = tempBoard;
 		return;
 	}
 
@@ -310,7 +310,7 @@ function checkMove(event){
 	}
 
 	// check if a piece is eaten not on the same team
-	if(chessBoard.board[currPosNew[0]][currPosNew[1]] == currPiece.color){
+	if(chessGame.board[currPosNew[0]][currPosNew[1]] == currPiece.color){
 		return false;
 	}
 	
@@ -370,16 +370,16 @@ function checkRook(){
 
 	// check if no pieces are in the way
 	for(let i = 1; i < squaresMoved; ++i){
-		if(chessBoard.board[pos[0] + i * addPosZero][pos[1] + i * addPosOne] != "")
+		if(chessGame.board[pos[0] + i * addPosZero][pos[1] + i * addPosOne] != "")
 			return false;
 	}
 
 	let row = currPosOld[0];
 	let col = currPosOld[1];
-	let fromSquare = chessBoard.board[row][col];
+	let fromSquare = chessGame.board[row][col];
 	row = currPosNew[0];
 	col = currPosNew[1];
-	let toSquare = chessBoard.board[row][col]; 
+	let toSquare = chessGame.board[row][col]; 
 	if(toSquare == "" || fromSquare.color != toSquare.color){
 		return true;
 	}
@@ -396,11 +396,11 @@ function checkKnight(){
 	if((rowAbsChange == 1 && colAbsChange == 2) || (rowAbsChange == 2 && colAbsChange == 1)){
 		let row = currPosOld[0];
 		let col = currPosOld[1];
-		let fromSquare = chessBoard.board[row][col];
+		let fromSquare = chessGame.board[row][col];
 
 		row = currPosNew[0];
 		col = currPosNew[1];
-		let toSquare = chessBoard.board[row][col];
+		let toSquare = chessGame.board[row][col];
 		if(toSquare == "" || fromSquare.color != toSquare.color)	
 			return true;
 	}
@@ -437,16 +437,16 @@ function checkBishop(){
 		let col = pos[1];
 		// check diagonal if a piece is in the way
 		for(let i = 1; i < rowAbsChange;i++){
-			if(chessBoard.board[row + i * addPosZero][col + i * addPosOne] != ""){
+			if(chessGame.board[row + i * addPosZero][col + i * addPosOne] != ""){
 				return false;
 			}
 		}
 	
-		let fromSquare = chessBoard.board[row][col];
+		let fromSquare = chessGame.board[row][col];
 		
 		row = currPosNew[0];
 		col = currPosNew[1];
-		let toSquare = chessBoard.board[row][col];
+		let toSquare = chessGame.board[row][col];
 		if(toSquare == "" || fromSquare.color != toSquare.color)	
 			return true;
 	}
@@ -469,7 +469,7 @@ function checkPawn(){
 	if(rowChange == rowDirection && colChange == 0){
 		row = currPosNew[0];
 		col = currPosNew[1];
-		if(chessBoard.board[row][col] != ""){
+		if(chessGame.board[row][col] != ""){
 			return false;
 		}
 		return true;
@@ -480,7 +480,7 @@ function checkPawn(){
 	if(rowChange == rowDirection * 2 && colChange == 0 && currPosOld[0] == pawnRow){
 		col = currPosOld[1];
 		for(let i = 1; i <= 2; ++i){
-			if(chessBoard.board[pawnRow + i*rowDirection][col] != ""){
+			if(chessGame.board[pawnRow + i*rowDirection][col] != ""){
 				return false;
 			}
 		}
@@ -491,7 +491,7 @@ function checkPawn(){
 	if(rowChange == rowDirection && (colChange == -1 || colChange == 1)){
 		row = currPosNew[0];
 		col = currPosNew[1];
-		let tempPiece = chessBoard.board[row][col];
+		let tempPiece = chessGame.board[row][col];
 
 		if(tempPiece != "" && tempPiece.color != currPiece.color)
 			return true;
@@ -526,7 +526,7 @@ function checkKing(){
 		row = currPosNew[0];
 		col = currPosNew[1];
 
-		let tempPiece = chessBoard.board[row][col];
+		let tempPiece = chessGame.board[row][col];
 		if(tempPiece == "" || tempPiece.color != currPiece.color){
 			return true;
 		}
@@ -549,11 +549,11 @@ function checkKing(){
 		col = currPosOld[1];
 		if(kingHasNotMoved && rookHasNotMoved){
 			for(let i = 1; i <= 2; ++i){
-				if(chessBoard.board[row][col + i * colChangeDirection] != ""){
+				if(chessGame.board[row][col + i * colChangeDirection] != ""){
 					return false;
 				}
 
-				let tempBoard = JSON.parse(JSON.stringify(chessBoard.board));
+				let tempBoard = JSON.parse(JSON.stringify(chessGame.board));
 				tempBoard[row][col + i*colChangeDirection] = tempBoard[row][col];
 				tempBoard[row][col] = "";
 
